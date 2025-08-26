@@ -2,176 +2,47 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Calculs origine Excel — Affichage JSON</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Résultats (calculs Excel-like)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root { font-family: system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
-    body { margin: 24px; }
-    h1 { margin: 0 0 8px; }
-    h2 { margin-top: 28px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-    th, td { border-bottom: 1px solid #eee; text-align: right; padding: 8px; }
-    th:first-child, td:first-child { text-align: left; }
-    tfoot td { font-weight: 600; }
-    .muted { color: #666; font-size: 0.9rem; }
-    .badger { display:inline-block; font-size: 12px; padding: 2px 8px; border: 1px solid #ccc; border-radius: 999px; }
-    code { background: #f6f6f6; padding: 2px 6px; border-radius: 6px; }
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    body { margin: 24px; color:#0f172a; }
+    h1 { margin: 0 0 8px; font-size: 1.4rem; }
+    p.muted { color:#64748b; margin:0 0 18px; }
+    .grid { display:grid; gap:16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+    .card { border:1px solid #e2e8f0; border-radius:12px; padding:16px; box-shadow:0 1px 2px rgba(0,0,0,.04); }
+    table { width:100%; border-collapse:collapse; margin-top:8px; }
+    th, td { padding:10px 8px; border-bottom:1px solid #f1f5f9; }
+    th { text-align:left; background:#f8fafc; }
+    td.value { text-align:right; font-variant-numeric: tabular-nums; }
+    .err { color:#b00020; white-space:pre-wrap; margin-top:8px; }
+    .ok { color:#065f46; }
+    .badge { display:inline-block; border:1px solid #cbd5e1; border-radius:999px; padding:2px 8px; font-size:.8rem; color:#334155; }
+    .small { font-size:.9rem; color:#475569; }
+    code { background:#f1f5f9; padding:1px 6px; border-radius:6px; }
   </style>
 </head>
 <body>
-  <h1>Affichage des valeurs après calcul (origine Excel)</h1>
+  <h1>Affichage des valeurs calculées</h1>
   <p class="muted">
-    Ce tableau applique des formules usuelles à partir de <code>donnees.json</code>.
-    Adaptez les formules si votre fichier Excel comporte des variantes.
+    Les données brutes sont lues depuis <code>donnees.json</code>.  
+    Le JS calcule les sorties comme dans un tableur (voir commentaires dans <code>app.js</code>).
   </p>
-
-  <div id="errors" style="color:#b00020; margin:12px 0;"></div>
 
   <div class="grid">
     <div class="card">
-      <h2>Paramètres d’entrée</h2>
-      <table id="params"><tbody></tbody></table>
-      <p class="muted">
-        Hypothèses&nbsp;: <em>facture</em> = mensuelle (€) •
-        <em>hausselec</em> = hausse annuelle (décimal) •
-        <em>productible</em> = kWh/kWc/an • <em>puissance</em> = kWc.
-      </p>
+      <span class="badge">Entrées détectées</span>
+      <table id="inputs"><thead><tr><th>Clé</th><th>Valeur</th></tr></thead><tbody></tbody></table>
     </div>
 
     <div class="card">
-      <h2>Production PV &amp; Recettes</h2>
-      <div><span class="badger">Formules</span></div>
-      <ul>
-        <li>Production annuelle (kWh)&nbsp;: <code>productible × puissance</code></li>
-        <li>Recette annuelle (€)&nbsp;: <code>production × tarifrevente</code></li>
-      </ul>
-      <table id="pv"><thead>
-        <tr><th>Année</th><th>Production (kWh)</th><th>Tarif (€/kWh)</th><th>Recette (€)</th></tr>
-      </thead><tbody></tbody><tfoot></tfoot></table>
-    </div>
-
-    <div class="card">
-      <h2>Évolution de la facture</h2>
-      <div><span class="badger">Formule</span> <code>facture_an0 × (1 + hausselec)^n</code></div>
-      <table id="bill"><thead>
-        <tr><th>Année</th><th>Facture / an (€)</th><th>Hausse vs A0</th></tr>
-      </thead><tbody></tbody><tfoot></tfoot></table>
+      <span class="badge">Sorties calculées</span>
+      <table id="results"><thead><tr><th>Clé</th><th>Valeur</th></tr></thead><tbody></tbody></table>
+      <div id="status" class="ok small">Chargement…</div>
+      <div id="error" class="err" style="display:none;"></div>
     </div>
   </div>
 
-  <script>
-    // Utilitaires
-    const fmtEUR = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
-    const fmtEUR2 = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
-    const fmtKWh = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
-    const fmtPct = new Intl.NumberFormat('fr-FR', { style: 'percent', maximumFractionDigits: 1 });
-
-    function parseNum(x) {
-      // Accepte "0,18" et "0.18"
-      if (typeof x === 'number') return x;
-      if (typeof x !== 'string') return NaN;
-      return parseFloat(x.replace(',', '.'));
-    }
-
-    function safe(fn, fallback = '-') {
-      try { const v = fn(); return Number.isFinite(v) ? v : fallback; }
-      catch { return fallback; }
-    }
-
-    function setError(msg) {
-      document.getElementById('errors').textContent = msg;
-    }
-
-    // Chargement du JSON puis calculs
-    fetch('./donnees.json')
-      .then(r => {
-        if (!r.ok) throw new Error("Impossible de lire donnees.json (" + r.status + ")");
-        return r.json();
-      })
-      .then(data => {
-        // Lecture et normalisation
-        const productible = parseNum(data.productible);          // kWh/kWc/an
-        const factureMens = parseNum(data.facture);              // € / mois
-        const tarif = parseNum(data.tarifrevente);               // €/kWh
-        const puissance = parseNum(data.puissance);              // kWc
-        const hausse = parseNum(data.hausselec);                 // ex 0.05
-        const periode = Math.max(1, parseInt(data.periodeans || 1, 10));
-
-        if ([productible, factureMens, tarif, puissance, hausse].some(v => !Number.isFinite(v))) {
-          setError("Certaines valeurs dans donnees.json ne sont pas des nombres (pensez aux virgules décimales).");
-        }
-
-        // Formules "origine calcul"
-        // Production annuelle
-        const productionAn = productible * puissance; // kWh/an
-        // Recette annuelle vente totale
-        const recetteAn = productionAn * tarif;       // €/an
-        // Facture annuelle année 0
-        const factureAn0 = factureMens * 12;         // €/an
-
-        // Affiche paramètres
-        const paramsTbody = document.querySelector('#params tbody');
-        const rowsParams = [
-          ['Productible (kWh/kWc/an)', fmtKWh.format(productible)],
-          ['Puissance (kWc)', puissance.toLocaleString('fr-FR')],
-          ['Production PV (kWh/an)', fmtKWh.format(productionAn)],
-          ['Tarif de revente (€/kWh)', tarif.toLocaleString('fr-FR')],
-          ['Recette PV (€/an)', fmtEUR2.format(recetteAn)],
-          ['Facture mensuelle de base (€)', fmtEUR2.format(factureMens)],
-          ['Facture annuelle A0 (€)', fmtEUR2.format(factureAn0)],
-          ['Hausse annuelle élec.', fmtPct.format(hausse)],
-          ['Période (années)', periode.toLocaleString('fr-FR')],
-        ];
-        paramsTbody.innerHTML = rowsParams.map(([k, v]) =>
-          `<tr><td>${k}</td><td style="text-align:right">${v}</td></tr>`
-        ).join('');
-
-        // Tableau PV (constantes par année, mais on détaille pour lisibilité)
-        const pvBody = document.querySelector('#pv tbody');
-        const pvFoot = document.querySelector('#pv tfoot');
-        let totalRecette = 0;
-        const pvRows = [];
-        for (let an = 0; an < periode; an++) {
-          // Vous pouvez faire varier tarif par an si besoin (indexation) : ici constant
-          totalRecette += recetteAn;
-          pvRows.push(`
-            <tr>
-              <td>A${an}</td>
-              <td>${fmtKWh.format(productionAn)}</td>
-              <td style="white-space:nowrap">${tarif.toLocaleString('fr-FR')}</td>
-              <td>${fmtEUR2.format(recetteAn)}</td>
-            </tr>
-          `);
-        }
-        pvBody.innerHTML = pvRows.join('');
-        pvFoot.innerHTML = `<tr><td colspan="3">Total ${periode} an(s)</td><td>${fmtEUR2.format(totalRecette)}</td></tr>`;
-
-        // Tableau Facture
-        const billBody = document.querySelector('#bill tbody');
-        const billFoot = document.querySelector('#bill tfoot');
-        let totalFacture = 0;
-        const billRows = [];
-        for (let an = 0; an < periode; an++) {
-          const factureAn = factureAn0 * Math.pow(1 + hausse, an); // hausse composée
-          totalFacture += factureAn;
-          const delta = (factureAn / factureAn0) - 1;
-          billRows.push(`
-            <tr>
-              <td>A${an}</td>
-              <td>${fmtEUR2.format(factureAn)}</td>
-              <td>${fmtPct.format(delta)}</td>
-            </tr>
-          `);
-        }
-        billBody.innerHTML = billRows.join('');
-        billFoot.innerHTML = `<tr><td>Total ${periode} an(s)</td><td>${fmtEUR2.format(totalFacture)}</td><td></td></tr>`;
-      })
-      .catch(err => {
-        console.error(err);
-        setError("Erreur: " + err.message + ". Placez ce fichier à côté de donnees.json ou servez-le via un petit serveur local.");
-      });
-  </script>
+  <script src="./app.js" defer></script>
 </body>
 </html>
