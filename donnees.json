@@ -1,7 +1,9 @@
-"productible": "1540"
-"facture": "230"
-"tarifrevente": "0,18"
-"puissance": "6"
-"hausselec": "0,05"
-"periodeans": "6"
-"hausselecgraph": "0,05"
+{
+  "productible": 1500,
+  "facture": 150,
+  "tarifrevente": 0.18,
+  "puissance": 3,
+  "hausselec": 0.05,
+  "periodeans": 20,
+  "hausselecgraph": 0.05
+}
