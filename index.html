@@ -2,45 +2,33 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Résultats (calculs Excel-like)</title>
+  <title>Résultats (formules Excel)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
-    body { margin: 24px; color:#0f172a; }
-    h1 { margin: 0 0 8px; font-size: 1.4rem; }
+    body { margin: 24px; color:#0f172a; background:#fff; }
+    h1 { margin: 0 0 10px; font-size: 1.4rem; }
     p.muted { color:#64748b; margin:0 0 18px; }
-    .grid { display:grid; gap:16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
     .card { border:1px solid #e2e8f0; border-radius:12px; padding:16px; box-shadow:0 1px 2px rgba(0,0,0,.04); }
     table { width:100%; border-collapse:collapse; margin-top:8px; }
     th, td { padding:10px 8px; border-bottom:1px solid #f1f5f9; }
     th { text-align:left; background:#f8fafc; }
     td.value { text-align:right; font-variant-numeric: tabular-nums; }
-    .err { color:#b00020; white-space:pre-wrap; margin-top:8px; }
     .ok { color:#065f46; }
-    .badge { display:inline-block; border:1px solid #cbd5e1; border-radius:999px; padding:2px 8px; font-size:.8rem; color:#334155; }
-    .small { font-size:.9rem; color:#475569; }
-    code { background:#f1f5f9; padding:1px 6px; border-radius:6px; }
+    .err { color:#b00020; white-space:pre-wrap; margin-top:8px; }
   </style>
 </head>
 <body>
-  <h1>Affichage des valeurs calculées</h1>
-  <p class="muted">
-    Les données brutes sont lues depuis <code>donnees.json</code>.  
-    Le JS calcule les sorties comme dans un tableur (voir commentaires dans <code>app.js</code>).
-  </p>
+  <h1>Affichage des valeurs calculées (aligné Excel)</h1>
+  <p class="muted">Les entrées sont lues depuis <code>donnees.json</code> (même dossier). Ouvre via GitHub Pages pour que <code>fetch</code> fonctionne.</p>
 
-  <div class="grid">
-    <div class="card">
-      <span class="badge">Entrées détectées</span>
-      <table id="inputs"><thead><tr><th>Clé</th><th>Valeur</th></tr></thead><tbody></tbody></table>
-    </div>
-
-    <div class="card">
-      <span class="badge">Sorties calculées</span>
-      <table id="results"><thead><tr><th>Clé</th><th>Valeur</th></tr></thead><tbody></tbody></table>
-      <div id="status" class="ok small">Chargement…</div>
-      <div id="error" class="err" style="display:none;"></div>
-    </div>
+  <div class="card">
+    <table id="results">
+      <thead><tr><th>Clé</th><th>Valeur</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div id="status" class="ok">Chargement…</div>
+    <div id="error" class="err" style="display:none;"></div>
   </div>
 
   <script src="./app.js" defer></script>
