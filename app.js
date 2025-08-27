@@ -74,10 +74,11 @@ const asNum = (v, fallback = 0) => {
 const row = (k, v) => `
   <tr>
     <td>${k}</td>
-    <td>${UNITS[k] || ""}</td>
     <td class="value">${nf(v)}</td>
+    <td>${UNITS[k] || ""}</td>
   </tr>
 `;
+
 
 const setStatus = (msg, ok = true) => {
   const el = document.getElementById("status");
@@ -199,3 +200,4 @@ fetch("donnees.json", { cache: "no-cache" })
   .catch(e => {
     showError("Problème avec donnees.json : " + (e?.message || e));
   });
+
