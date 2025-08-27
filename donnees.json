@@ -1,9 +1,10 @@
 {
-  "productible": 1500,
   "facture": 150,
-  "tarifrevente": 0.18,
+  "tarif": 0.22,
+  "ratiojour": 60,
+  "productible": 1500,
   "puissance": 3,
-  "hausselec": 0.05,
-  "periodeans": 20,
-  "hausselecgraph": 0.05
+  "tarifrevente": 0.18,
+  "hausselecgraph": 0.05,
+  "periodeans": 20
 }
