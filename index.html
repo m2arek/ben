@@ -10,10 +10,28 @@
     h1 { margin: 0 0 10px; font-size: 1.4rem; }
     p.muted { color:#64748b; margin:0 0 18px; }
     .card { border:1px solid #e2e8f0; border-radius:12px; padding:16px; box-shadow:0 1px 2px rgba(0,0,0,.04); }
-    table { width:100%; border-collapse:collapse; margin-top:8px; }
-    th, td { padding:10px 8px; border-bottom:1px solid #f1f5f9; }
-    th { text-align:left; background:#f8fafc; }
-    td.value { text-align:right; font-variant-numeric: tabular-nums; }
+
+    /* === Ajustements de largeur sur contenu === */
+    .table-wrap { overflow-x: auto; }     /* évite de casser la mise en page sur petits écrans */
+    table {
+      width: auto;                        /* largeur = somme des colonnes (pas 100%) */
+      border-collapse: collapse;
+      margin-top: 8px;
+      table-layout: auto;                 /* calcul de largeur basé sur le contenu */
+    }
+    th, td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      white-space: nowrap;                /* empêche les retours à la ligne dans les cellules */
+    }
+    th { text-align: left; background:#f8fafc; }
+    td.value { text-align: right; font-variant-numeric: tabular-nums; }
+
+    /* colonnes : des min-width pour confort visuel, mais la largeur reste dictée par le contenu */
+    th:nth-child(1), td:nth-child(1) { min-width: 220px; } /* Clé */
+    th:nth-child(2), td:nth-child(2) { min-width: 80px; }  /* Valeur */
+    th:nth-child(3), td:nth-child(3) { min-width: 70px; }  /* Unité */
+
     .ok { color:#065f46; margin-top:8px; }
     .err { color:#b00020; white-space:pre-wrap; margin-top:8px; display:none; }
     code { background:#f1f5f9; padding:1px 6px; border-radius:6px; }
@@ -27,16 +45,18 @@
   </p>
 
   <div class="card">
-    <table id="results">
-      <thead>
-        <tr>
-          <th>Clé</th>
-          <th>Valeur</th>
-          <th>Unité</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <div class="table-wrap">
+      <table id="results">
+        <thead>
+          <tr>
+            <th>Clé</th>
+            <th>Valeur</th>
+            <th>Unité</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
     <div id="status" class="ok">Chargement…</div>
     <div id="error" class="err"></div>
   </div>
@@ -45,4 +65,3 @@
   <script src="app.js" defer></script>
 </body>
 </html>
-
