@@ -15,7 +15,7 @@
     th { text-align:left; background:#f8fafc; }
     td.value { text-align:right; font-variant-numeric: tabular-nums; }
     .ok { color:#065f46; margin-top:8px; }
-    .err { color:#b00020; white-space:pre-wrap; margin-top:8px; }
+    .err { color:#b00020; white-space:pre-wrap; margin-top:8px; display:none; }
     code { background:#f1f5f9; padding:1px 6px; border-radius:6px; }
   </style>
 </head>
@@ -23,7 +23,7 @@
   <h1>Affichage des valeurs calculées (aligné Excel)</h1>
   <p class="muted">
     Les entrées sont lues depuis <code>donnees.json</code>.  
-    Assure-toi que <code>index.html</code>, <code>app.js</code> et <code>donnees.json</code> sont dans le même dossier.
+    Place <code>index.html</code>, <code>app.js</code> et <code>donnees.json</code> dans le même dossier.
   </p>
 
   <div class="card">
@@ -31,17 +31,17 @@
       <thead>
         <tr>
           <th>Clé</th>
-          <th>Valeur</th>
           <th>Unité</th>
+          <th>Valeur</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
     <div id="status" class="ok">Chargement…</div>
-    <div id="error" class="err" style="display:none;"></div>
+    <div id="error" class="err"></div>
   </div>
 
-  <!-- Si index.html et app.js sont au même niveau -->
+  <!-- app.js doit être au même niveau que ce fichier -->
   <script src="app.js" defer></script>
 </body>
 </html>
