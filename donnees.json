@@ -1,13 +1,14 @@
 {
-  "facture": 230,
+  "facture": 100,
   "tarif": 0.236,
   "ratiojour": 0.67,
   "productible": 1540,
-  "puissance": 6,
+  "puissance": 3,
   "tarifrevente": 0.18,
   "hausselecgraph": 0.05,
   "periodeans": 20
 }
+
 
 
 
