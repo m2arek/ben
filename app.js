@@ -57,7 +57,7 @@ const nf = (v, max = 2) => {
   if (v === null || v === undefined || Number.isNaN(v)) return "—";
   return new Intl.NumberFormat("fr-FR", { maximumFractionDigits: max }).format(v);
 };
-const zint = (x) => { // Excel INT (pour positifs ici)
+const zint = (x) => { // Excel INT (pour positifs)
   const n = Number(x);
   return Math.floor(isFinite(n) ? n : 0);
 };
@@ -69,13 +69,16 @@ const asNum = (v, fallback = 0) => {
   }
   return fallback;
 };
+
+// >>> Variante A : Clé | Unité | Valeur <<<
 const row = (k, v) => `
   <tr>
     <td>${k}</td>
-    <td class="value">${nf(v)}</td>
     <td>${UNITS[k] || ""}</td>
+    <td class="value">${nf(v)}</td>
   </tr>
 `;
+
 const setStatus = (msg, ok = true) => {
   const el = document.getElementById("status");
   if (el) {
@@ -92,21 +95,22 @@ const showError = (msg) => {
   setStatus("Échec du chargement.", false);
 };
 
-// === Moteur de calcul (formules Excel-aligned) ===
+// === Moteur de calcul (formules Excel alignées) ===
 function computeFromInputs(input) {
-  // Entrées attendues (dans donnees.json) :
-  // facture (€/mois), tarif (€/kWh), ratiojour (0..1), productible (kWh/kWc/an),
-  // puissance (kWc), tarifrevente (€/kWh), hausselecgraph (0..1), periodeans (années)
+  // Entrées attendues dans donnees.json :
+  // - facture (€/mois), tarif (€/kWh), ratiojour (0..1)
+  // - productible (kWh/kWc/an), puissance (kWc)
+  // - tarifrevente (€/kWh), hausselecgraph (0..1), periodeans (années)
   const productible     = asNum(input.productible);
   const facture         = asNum(input.facture);
   const tarif           = asNum(input.tarif ?? input.tarin);
-  const ratiojour       = asNum(input.ratiojour); // Désormais tu mets 0.67 (et NON 67)
+  const ratiojour       = asNum(input.ratiojour); // ex. 0.67
   const tarifrevente    = asNum(input.tarifrevente);
   const puissance       = asNum(input.puissance);
   const periodeans      = asNum(input.periodeans, 20);
   const hausselecgraph  = asNum(input.hausselecgraph, asNum(input.hausselec, 0.05));
 
-  // Formules
+  // Formules Excel-like
   const facturean = zint(facture * 12);
 
   const consokwh = zint(tarif ? (facturean / tarif) : 0);
@@ -145,7 +149,7 @@ function computeFromInputs(input) {
 
   const totalfacs20ansavecpv = totalfacs20anssanspv - economies20ans;
 
-  // Batterie (hypothèse de la feuille : prodan * tarif)
+  // Batterie
   const valprodan1avecbatt = zint(prodan * tarif);
   const ecomoisan1avecbatt = zint(valprodan1avecbatt / 12);
   const economies20ansavecbatt = zint(valprodan1avecbatt * geo);
